@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国航天能源 • China Space & Energy Digest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Crimson+Pro:wght@400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0e14;
+            --bg-card: #141920;
+            --bg-hover: #1a2029;
+            --accent-red: #e63946;
+            --accent-gold: #f4a261;
+            --text-primary: #e8e9ed;
+            --text-secondary: #9ca3af;
+            --text-chinese: #f4a261;
+            --border: #2a3441;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(230, 57, 70, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(244, 162, 97, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            padding: 3rem 0 4rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 3rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.02em;
+        }
+
+        .chinese-title {
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 2rem;
+            color: var(--text-chinese);
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .subtitle {
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+            animation: fadeIn 1s ease-out 0.2s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn, .refresh-btn, .export-btn {
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-btn:hover, .refresh-btn:hover, .export-btn:hover {
+            background: var(--bg-hover);
+            border-color: var(--accent-gold);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: var(--accent-red);
+            border-color: var(--accent-red);
+            color: white;
+        }
+
+        .subcategory-btn {
+            font-size: 0.8rem;
+            padding: 0.6rem 1.2rem;
+        }
+
+        .subcategory-btn.active {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--bg-dark);
+        }
+
+        .refresh-btn {
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            border: none;
+            color: white;
+            font-weight: 700;
+        }
+
+        .export-btn {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: var(--bg-dark);
+            font-weight: 700;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            font-family: 'Space Mono', monospace;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .news-grid {
+            display: grid;
+            gap: 1.5rem;
+            animation: fadeIn 1.2s ease-out 0.4s both;
+        }
+
+        .news-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .news-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent-red), var(--accent-gold));
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .news-card:hover {
+            border-color: var(--accent-gold);
+            transform: translateX(4px);
+        }
+
+        .news-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .category-tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            border: 1px solid;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 700;
+        }
+
+        .category-tag.space {
+            color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+
+        .category-tag.energy {
+            color: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
+        .subcategory-tag {
+            color: var(--text-secondary);
+            border-color: var(--border);
+            font-size: 0.7rem;
+        }
+
+        .date {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .bookmark-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0.25rem;
+        }
+
+        .bookmark-btn:hover {
+            transform: scale(1.2) rotate(12deg);
+        }
+
+        .bookmark-btn.bookmarked {
+            filter: hue-rotate(20deg) saturate(2);
+        }
+
+        .news-title-cn {
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text-chinese);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .news-title-en {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        .news-summary {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .source {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .source-name {
+            color: var(--accent-gold);
+            font-weight: 700;
+        }
+
+        .bookmarks-section {
+            margin-top: 4rem;
+            padding-top: 3rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            font-family: 'Space Mono', monospace;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            .chinese-title { font-size: 1.5rem; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .filter-group { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="chinese-title">中国航天能源周报</div>
+            <h1>China Space & Energy Digest</h1>
+            <p class="subtitle">AI-Powered Chinese News Aggregator</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalCount">0</div>
+                <div class="stat-label">Total Stories</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="spaceCount">0</div>
+                <div class="stat-label">Space</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="satellitesCount">0</div>
+                <div class="stat-label">🛰️ Satellites</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="rocketsCount">0</div>
+                <div class="stat-label">🚀 Rockets</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="militaryCount">0</div>
+                <div class="stat-label">⚔️ Military</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="energyCount">0</div>
+                <div class="stat-label">Energy</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="bookmarkCount">0</div>
+                <div class="stat-label">Bookmarked</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">All Stories</button>
+                <button class="filter-btn" data-filter="space">Space</button>
+                <button class="filter-btn" data-filter="energy">Energy</button>
+            </div>
+            <div class="filter-group" id="spaceSubcategories" style="display: none;">
+                <button class="filter-btn subcategory-btn" data-filter="satellites">🛰️ Satellites</button>
+                <button class="filter-btn subcategory-btn" data-filter="rockets">🚀 Rockets</button>
+                <button class="filter-btn subcategory-btn" data-filter="military">⚔️ Military</button>
+            </div>
+            <div class="filter-group">
+                <button class="refresh-btn" onclick="fetchNews()">🔄 Refresh News</button>
+                <button class="export-btn" onclick="exportBookmarks()">📥 Export Bookmarks</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            正在加载新闻 • Fetching latest news...
+        </div>
+
+        <div id="newsContainer" class="news-grid" style="display: none;"></div>
+
+        <div class="bookmarks-section">
+            <h2 class="section-title">📌 Bookmarked for Newsletter</h2>
+            <div id="bookmarksContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let allNews = [];
+        let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+        let currentFilter = 'all';
+
+        // Mock news data - in production, this would call the Anthropic API to fetch and translate real Chinese news
+        async function fetchNews() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('newsContainer').style.display = 'none';
+
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 1500));
+
+            // Mock data - this would be replaced with actual API calls to:
+            // 1. Fetch from Chinese RSS feeds (科技日报, 中國軍網, Sina News, Tech News, etc.)
+            // 2. Use Claude API to summarize in Chinese
+            // 3. Translate to English
+            allNews = [
+                {
+                    id: '1',
+                    titleCn: '天舟七号货运飞船成功发射，为中国空间站送去补给',
+                    titleEn: 'Tianzhou-7 Cargo Spacecraft Successfully Launched, Delivering Supplies to China Space Station',
+                    summary: 'China launched the Tianzhou-7 cargo spacecraft from Wenchang Space Launch Site, carrying approximately 6 tons of supplies including scientific equipment, crew provisions, and propellant for the Tiangong space station.',
+                    category: 'space',
+                    subcategory: 'rockets',
+                    source: 'Xinhua News Agency (新华社)',
+                    date: '2025-02-15',
+                    url: 'https://example.com/news1'
+                },
+                {
+                    id: '2',
+                    titleCn: '中国核聚变研究取得重大突破，等离子体温度达到新纪录',
+                    titleEn: 'Major Breakthrough in Chinese Nuclear Fusion Research as Plasma Temperature Reaches Record High',
+                    summary: 'Scientists at the Hefei Institutes of Physical Science announced that the Experimental Advanced Superconducting Tokamak (EAST) achieved a plasma temperature exceeding 100 million degrees Celsius, a significant milestone toward commercial fusion energy.',
+                    category: 'energy',
+                    subcategory: null,
+                    source: 'Science and Technology Daily (科技日报)',
+                    date: '2025-02-15',
+                    url: 'https://example.com/news2'
+                },
+                {
+                    id: '3',
+                    titleCn: '解放军开展新型卫星导航系统测试，提升太空作战能力',
+                    titleEn: 'PLA Conducts Testing of New Satellite Navigation System, Enhancing Space Operations Capability',
+                    summary: 'The People\'s Liberation Army conducted comprehensive tests of an upgraded satellite navigation and positioning system, demonstrating improved accuracy and anti-jamming capabilities for military space operations and strategic applications.',
+                    category: 'space',
+                    subcategory: 'military',
+                    source: 'China Military Online (中國軍網)',
+                    date: '2025-02-14',
+                    url: 'https://example.com/news3'
+                },
+                {
+                    id: '4',
+                    titleCn: '新型钠离子电池技术突破，有望降低储能成本',
+                    titleEn: 'Breakthrough in Sodium-Ion Battery Technology Promises Lower Energy Storage Costs',
+                    summary: 'Chinese researchers have developed a new sodium-ion battery with energy density comparable to lithium-ion batteries but at a fraction of the cost. The technology could revolutionize grid-scale energy storage and electric vehicle markets.',
+                    category: 'energy',
+                    subcategory: null,
+                    source: 'Science and Technology Daily (科技日报)',
+                    date: '2025-02-14',
+                    url: 'https://example.com/news4'
+                },
+                {
+                    id: '5',
+                    titleCn: '中国商业航天公司完成可重复使用火箭第三次回收',
+                    titleEn: 'Chinese Commercial Space Company Completes Third Reusable Rocket Recovery',
+                    summary: 'LandSpace successfully recovered its Zhuque-3 rocket for the third time, demonstrating growing capabilities in reusable launch technology. The company aims to reduce launch costs by 70% through rocket reusability.',
+                    category: 'space',
+                    subcategory: 'rockets',
+                    source: 'Sina Tech News (新浪科技)',
+                    date: '2025-02-13',
+                    url: 'https://example.com/news5'
+                },
+                {
+                    id: '6',
+                    titleCn: '中国海上风电装机容量突破50GW，领先全球',
+                    titleEn: 'China\'s Offshore Wind Power Capacity Surpasses 50GW, Leading Globally',
+                    summary: 'China has installed over 50 gigawatts of offshore wind power capacity, accounting for more than half of global offshore wind installations. Major projects in Jiangsu and Guangdong provinces contributed significantly to this milestone.',
+                    category: 'energy',
+                    subcategory: null,
+                    source: 'Sina News (新浪新闻)',
+                    date: '2025-02-12',
+                    url: 'https://example.com/news6'
+                },
+                {
+                    id: '7',
+                    titleCn: '国产光刻机研发取得进展，7纳米芯片制造能力提升',
+                    titleEn: 'Domestic Lithography Machine Development Advances, 7nm Chip Manufacturing Capability Enhanced',
+                    summary: 'Chinese semiconductor equipment manufacturers reported significant progress in developing extreme ultraviolet (EUV) lithography systems, with new prototypes showing capability to produce 7-nanometer chips, reducing reliance on foreign technology.',
+                    category: 'energy',
+                    subcategory: null,
+                    source: 'Tech News (科技新闻)',
+                    date: '2025-02-11',
+                    url: 'https://example.com/news7'
+                },
+                {
+                    id: '8',
+                    titleCn: '北斗三号卫星系统完成全球组网，定位精度达厘米级',
+                    titleEn: 'BeiDou-3 Satellite System Completes Global Network, Positioning Accuracy Reaches Centimeter Level',
+                    summary: 'The BeiDou-3 global navigation satellite system has achieved full operational capability with centimeter-level precision positioning services. The constellation now consists of 35 satellites providing global coverage with enhanced reliability.',
+                    category: 'space',
+                    subcategory: 'satellites',
+                    source: 'Science and Technology Daily (科技日报)',
+                    date: '2025-02-11',
+                    url: 'https://example.com/news8'
+                },
+                {
+                    id: '9',
+                    titleCn: '解放军加强太空监测网络建设，部署新型预警卫星',
+                    titleEn: 'PLA Strengthens Space Monitoring Network with Deployment of New Early Warning Satellites',
+                    summary: 'The Strategic Support Force has deployed additional early warning satellites as part of an expanded space surveillance network, enhancing China\'s ability to monitor orbital activities and detect potential threats to space assets.',
+                    category: 'space',
+                    subcategory: 'military',
+                    source: 'China Military Online (中國軍網)',
+                    date: '2025-02-10',
+                    url: 'https://example.com/news9'
+                },
+                {
+                    id: '10',
+                    titleCn: '中国首个深海核电站项目获批，将为海上油气开发供电',
+                    titleEn: 'China\'s First Deep-Sea Nuclear Power Plant Project Approved for Offshore Oil and Gas Development',
+                    summary: 'Authorities have approved the construction of China\'s first floating nuclear power platform, designed to provide electricity to offshore oil and gas operations in the South China Sea. The project marks a significant step in maritime nuclear technology.',
+                    category: 'energy',
+                    subcategory: null,
+                    source: 'Sina Tech News (新浪科技)',
+                    date: '2025-02-10',
+                    url: 'https://example.com/news10'
+                },
+                {
+                    id: '11',
+                    titleCn: '长征九号重型运载火箭完成发动机地面测试',
+                    titleEn: 'Long March 9 Heavy-Lift Rocket Completes Engine Ground Testing',
+                    summary: 'The China Aerospace Science and Technology Corporation successfully completed ground tests of the YF-130 engine for the Long March 9 rocket. The super-heavy launcher, comparable to SpaceX\'s Starship, is expected to debut by 2030.',
+                    category: 'space',
+                    subcategory: 'rockets',
+                    source: 'Sina Tech News (新浪科技)',
+                    date: '2025-02-09',
+                    url: 'https://example.com/news11'
+                },
+                {
+                    id: '12',
+                    titleCn: '吉林一号卫星星座扩展至300颗，提供全球高分辨率遥感服务',
+                    titleEn: 'Jilin-1 Satellite Constellation Expands to 300 Satellites, Providing Global High-Resolution Remote Sensing',
+                    summary: 'Chang Guang Satellite Technology has expanded its Jilin-1 constellation to 300 satellites, making it the world\'s largest commercial remote sensing network. The system provides sub-meter resolution imaging with daily global coverage.',
+                    category: 'space',
+                    subcategory: 'satellites',
+                    source: 'Tech News (科技新闻)',
+                    date: '2025-02-09',
+                    url: 'https://example.com/news12'
+                },
+                {
+                    id: '13',
+                    titleCn: '解放军战略支援部队进行反卫星技术演练',
+                    titleEn: 'PLA Strategic Support Force Conducts Anti-Satellite Technology Exercises',
+                    summary: 'The PLA Strategic Support Force conducted exercises testing counter-space capabilities including satellite jamming, cyber operations, and kinetic anti-satellite systems. The drills demonstrate China\'s growing space warfare readiness.',
+                    category: 'space',
+                    subcategory: 'military',
+                    source: 'China Military Online (中國軍網)',
+                    date: '2025-02-08',
+                    url: 'https://example.com/news13'
+                },
+                {
+                    id: '14',
+                    titleCn: '中国新型气象卫星成功发射，提升台风预警能力',
+                    titleEn: 'China Launches New Meteorological Satellite, Enhancing Typhoon Warning Capabilities',
+                    summary: 'The Fengyun-5 meteorological satellite was successfully launched, featuring advanced sensors for tracking typhoons, monitoring climate change, and providing early warnings for extreme weather events across the Asia-Pacific region.',
+                    category: 'space',
+                    subcategory: 'satellites',
+                    source: 'Xinhua News Agency (新华社)',
+                    date: '2025-02-08',
+                    url: 'https://example.com/news14'
+                }
+            ];
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('newsContainer').style.display = 'grid';
+            
+            renderNews();
+            updateStats();
+        }
+
+        function renderNews() {
+            const container = document.getElementById('newsContainer');
+            let filteredNews = allNews;
+            
+            // Filter by main category or subcategory
+            if (currentFilter === 'all') {
+                filteredNews = allNews;
+            } else if (['satellites', 'rockets', 'military'].includes(currentFilter)) {
+                // Subcategory filter
+                filteredNews = allNews.filter(news => news.subcategory === currentFilter);
+            } else {
+                // Main category filter
+                filteredNews = allNews.filter(news => news.category === currentFilter);
+            }
+
+            container.innerHTML = filteredNews.map(news => `
+                <div class="news-card" data-id="${news.id}">
+                    <div class="card-header">
+                        <div class="card-meta">
+                            <span class="category-tag ${news.category}">${news.category}</span>
+                            ${news.subcategory ? `<span class="category-tag subcategory-tag">${news.subcategory}</span>` : ''}
+                            <span class="date">${news.date}</span>
+                        </div>
+                        <button class="bookmark-btn ${bookmarks.includes(news.id) ? 'bookmarked' : ''}" 
+                                onclick="toggleBookmark('${news.id}')">
+                            ${bookmarks.includes(news.id) ? '⭐' : '☆'}
+                        </button>
+                    </div>
+                    <div class="news-title-cn">${news.titleCn}</div>
+                    <h3 class="news-title-en">${news.titleEn}</h3>
+                    <p class="news-summary">${news.summary}</p>
+                    <div class="source">
+                        Source: <span class="source-name">${news.source}</span>
+                    </div>
+                </div>
+            `).join('');
+
+            renderBookmarks();
+        }
+
+        function renderBookmarks() {
+            const container = document.getElementById('bookmarksContainer');
+            const bookmarkedNews = allNews.filter(news => bookmarks.includes(news.id));
+
+            if (bookmarkedNews.length === 0) {
+                container.innerHTML = '<div class="empty-state">No bookmarks yet. Click the ☆ icon on stories you want to include in your newsletter.</div>';
+                return;
+            }
+
+            container.innerHTML = bookmarkedNews.map(news => `
+                <div class="news-card" data-id="${news.id}">
+                    <div class="card-header">
+                        <div class="card-meta">
+                            <span class="category-tag ${news.category}">${news.category}</span>
+                            ${news.subcategory ? `<span class="category-tag subcategory-tag">${news.subcategory}</span>` : ''}
+                            <span class="date">${news.date}</span>
+                        </div>
+                        <button class="bookmark-btn bookmarked" onclick="toggleBookmark('${news.id}')">⭐</button>
+                    </div>
+                    <div class="news-title-cn">${news.titleCn}</div>
+                    <h3 class="news-title-en">${news.titleEn}</h3>
+                    <p class="news-summary">${news.summary}</p>
+                    <div class="source">
+                        Source: <span class="source-name">${news.source}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleBookmark(id) {
+            if (bookmarks.includes(id)) {
+                bookmarks = bookmarks.filter(b => b !== id);
+            } else {
+                bookmarks.push(id);
+            }
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+            renderNews();
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('totalCount').textContent = allNews.length;
+            document.getElementById('spaceCount').textContent = allNews.filter(n => n.category === 'space').length;
+            document.getElementById('energyCount').textContent = allNews.filter(n => n.category === 'energy').length;
+            document.getElementById('satellitesCount').textContent = allNews.filter(n => n.subcategory === 'satellites').length;
+            document.getElementById('rocketsCount').textContent = allNews.filter(n => n.subcategory === 'rockets').length;
+            document.getElementById('militaryCount').textContent = allNews.filter(n => n.subcategory === 'military').length;
+            document.getElementById('bookmarkCount').textContent = bookmarks.length;
+        }
+
+        function exportBookmarks() {
+            const bookmarkedNews = allNews.filter(news => bookmarks.includes(news.id));
+            
+            if (bookmarkedNews.length === 0) {
+                alert('No bookmarks to export. Bookmark some stories first!');
+                return;
+            }
+
+            let exportText = `# China Space & Energy Newsletter - ${new Date().toISOString().split('T')[0]}\n\n`;
+            
+            bookmarkedNews.forEach(news => {
+                exportText += `## ${news.titleEn}\n`;
+                exportText += `**${news.titleCn}**\n\n`;
+                exportText += `${news.summary}\n\n`;
+                exportText += `*Source: ${news.source} | ${news.date} | Category: ${news.category}*\n\n`;
+                exportText += `---\n\n`;
+            });
+
+            const blob = new Blob([exportText], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `china-news-bookmarks-${new Date().toISOString().split('T')[0]}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const filter = e.target.dataset.filter;
+                const isSubcategory = ['satellites', 'rockets', 'military'].includes(filter);
+                
+                // Handle main category buttons (all, space, energy)
+                if (!isSubcategory) {
+                    // Clear all active states
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    // Show/hide subcategory buttons based on selection
+                    const subcategoryContainer = document.getElementById('spaceSubcategories');
+                    if (filter === 'space') {
+                        subcategoryContainer.style.display = 'flex';
+                    } else {
+                        subcategoryContainer.style.display = 'none';
+                    }
+                } else {
+                    // Handle subcategory buttons - only remove active from other subcategory buttons
+                    document.querySelectorAll('.subcategory-btn').forEach(b => b.classList.remove('active'));
+                    e.target.classList.add('active');
+                }
+                
+                currentFilter = filter;
+                renderNews();
+            });
+        });
+
+        // Load news on page load
+        fetchNews();
+    </script>
+</body>
+</html>
